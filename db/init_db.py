@@ -1,4 +1,6 @@
 from db.database import Base, engine
+from posts.models import Post
+from user.models import User
 
 
 print("Creating database tables...")
