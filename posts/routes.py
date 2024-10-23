@@ -6,22 +6,29 @@ from posts.crud import (
     get_post,
     get_posts,
     update_post,
-    delete_post
+    delete_post,
 )
 from posts.schemas import PostCreate, Post
 from db.database import get_db
-
+from user.models import User
+from user.services import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/posts/", response_model=Post)
-def create(post: PostCreate, user_id: int, db: Session = Depends(get_db)):
-    return create_post(db=db, post=post, user_id=user_id)
+def create(
+    post: PostCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return create_post(db=db, post=post, user_id=current_user.id)
 
 
 @router.get("/posts/", response_model=list[Post])
-def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def read_posts(
+    skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
+):
     posts = get_posts(db=db, skip=skip, limit=limit)
     return posts
 
@@ -35,7 +42,12 @@ def read_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/posts/{post_id}", response_model=Post)
-def update(post_id: int, post: PostCreate, db: Session = Depends(get_db)):
+def update(
+    post_id: int,
+    post: PostCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     db_post = update_post(db=db, post_id=post_id, post=post)
     if db_post is None:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -43,7 +55,11 @@ def update(post_id: int, post: PostCreate, db: Session = Depends(get_db)):
 
 
 @router.delete("/posts/{post_id}", response_model=Post)
-def delete(post_id: int, db: Session = Depends(get_db)):
+def delete(
+    post_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     db_post = delete_post(db=db, post_id=post_id)
     if db_post is None:
         raise HTTPException(status_code=404, detail="Post not found")
