@@ -17,7 +17,7 @@ def create_comment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Comment:
-    db_comment = Comment(**comment.dict(), user_id=current_user.id)
+    db_comment = Comment(**comment.dict())
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)

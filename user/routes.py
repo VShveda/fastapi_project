@@ -18,12 +18,21 @@ def get_password_hash(password: str) -> str:
 
 
 @router.post("/register", response_model=UserResponse)
-async def register(user: UserCreate, db: Session = Depends(get_db)) -> User:
-    existing_user = db.query(User).filter(User.username == user.username).first()
+async def register(
+    user: UserCreate, db: Session = Depends(get_db)
+) -> User:
+    existing_user = (
+        db.query(User).filter(User.username == user.username).first()
+    )
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(
+            status_code=400, detail="Username already registered"
+        )
 
-    new_user = User(username=user.username, hashed_password=get_password_hash(user.password))
+    new_user = User(
+        username=user.username,
+        hashed_password=get_password_hash(user.password),
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -32,11 +41,19 @@ async def register(user: UserCreate, db: Session = Depends(get_db)) -> User:
 
 @router.post("/login")
 async def login(user: UserCreate, db: Session = Depends(get_db)) -> dict:
-    db_user = db.query(User).filter(User.username == user.username).first()
+    db_user = (
+        db.query(User).filter(User.username == user.username).first()
+    )
 
-    if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
+    if not db_user or not pwd_context.verify(
+        user.password, db_user.hashed_password
+    ):
+        raise HTTPException(
+            status_code=400, detail="Invalid username or password"
+        )
 
-    access_token = create_access_token(data={"sub": db_user.username})
+    access_token = create_access_token(
+        data={"id": db_user.id, "sub": db_user.username}
+    )
 
     return {"access_token": access_token, "token_type": "bearer"}

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Type
 
 import bcrypt
 from fastapi import HTTPException, Depends
@@ -32,22 +32,6 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-def verify_token(token: str) -> dict:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-        )
-    except jwt.JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token is invalid",
-        )
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(
         plain_password.encode("utf-8"), hashed_password.encode("utf-8")
@@ -67,23 +51,23 @@ def authenticate_user(
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
-) -> User:
+) -> Type[User]:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={"Authenticate": "Bearer"},
     )
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        if username is None:
+        user_id: int = payload.get("id")
+        if username is None or user_id is None:
             raise credentials_exception
-        token_data = username
     except JWTError:
         raise credentials_exception
 
-    db_user = db.query(User).filter(User.username == token_data).first()
+    db_user = db.query(User).filter(User.id == user_id).first()
     if db_user is None:
         raise credentials_exception
 
