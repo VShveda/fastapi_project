@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from db.database import get_db
 from comments.schemas import CommentCreate, CommentResponse
 from comments.models import Comment
+from services.moderation import is_toxic_content
 from user.models import User
 from user.services import get_current_user
 
@@ -17,6 +18,11 @@ def create_comment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Comment:
+    if is_toxic_content(comment.content):
+        comment.is_banned = True
+        raise HTTPException(
+            status_code=400, detail="Comment contains prohibited content"
+        )
     db_comment = Comment(**comment.dict())
     db.add(db_comment)
     db.commit()

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class CommentBase(BaseModel):
     content: str
+    is_banned: bool
 
 
 class CommentCreate(CommentBase):

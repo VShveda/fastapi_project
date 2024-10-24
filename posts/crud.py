@@ -10,12 +10,16 @@ def get_post(db: Session, post_id: int) -> Post:
     return db.query(Post).filter(Post.id == post_id).first()
 
 
-def get_posts(db: Session, skip: int = 0, limit: int = 10) -> list[Type[Post]]:
+def get_posts(
+    db: Session, skip: int = 0, limit: int = 10
+) -> list[Type[Post]]:
     return db.query(Post).offset(skip).limit(limit).all()
 
 
-def create_post(db: Session, post: PostCreate, user_id: int) -> Post:
-    db_post = Post(**post.dict(), user_id=user_id)
+def create_post(
+    db: Session, post: PostCreate, user_id: int, is_banned: bool
+) -> Post:
+    db_post = Post(**post.dict(), user_id=user_id, is_banned=is_banned)
     db.add(db_post)
     db.commit()
     db.refresh(db_post)

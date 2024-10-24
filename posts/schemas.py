@@ -13,6 +13,7 @@ class PostCreate(PostBase):
 class Post(PostBase):
     id: int
     user_id: int
+    is_banned: bool
 
     class Config:
         from_attributes = True
