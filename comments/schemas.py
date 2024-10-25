@@ -3,18 +3,17 @@ from pydantic import BaseModel
 
 class CommentBase(BaseModel):
     content: str
-    is_banned: bool
+    post_id: int
 
 
 class CommentCreate(CommentBase):
-    post_id: int
-    user_id: int
+    pass
 
 
 class CommentResponse(CommentBase):
     id: int
-    post_id: int
     user_id: int
+    is_banned: bool
 
     class Config:
         from_attributes = True

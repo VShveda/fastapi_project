@@ -25,7 +25,7 @@ def create(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Post:
-
+    print(post)
     if is_toxic_content(post.content):
         create_post(
             db=db, post=post, user_id=current_user.id, is_banned=True

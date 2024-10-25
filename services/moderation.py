@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from google import generativeai
 
+
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
@@ -25,4 +26,4 @@ def is_toxic_content(text: str) -> bool:
         return "true" in message
     except Exception as e:
         print(f"Error analyzing content: {e}")
-        return False
+        return True

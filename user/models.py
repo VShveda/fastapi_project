@@ -13,7 +13,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     auto_reply_enabled = Column(Boolean, default=False)
-    reply_time = Column(Interval, default=timedelta(minutes=1))
+    reply_time = Column(Interval, default=1)
 
     posts = relationship("Post", back_populates="user")
     comments = relationship("Comment", back_populates="user")
