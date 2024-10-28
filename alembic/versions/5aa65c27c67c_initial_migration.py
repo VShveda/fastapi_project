@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: f3be8d23a81f
+Revision ID: 5aa65c27c67c
 Revises: 
-Create Date: 2024-10-23 13:29:05.859290
+Create Date: 2024-10-28 17:02:07.051043
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f3be8d23a81f'
+revision: str = '5aa65c27c67c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,7 +32,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('content', sa.Text(), nullable=True),
+    sa.Column('is_banned', sa.Boolean(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('auto_reply_enabled', sa.Boolean(), nullable=True),
+    sa.Column('reply_delay', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -41,6 +44,8 @@ def upgrade() -> None:
     op.create_table('comments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.String(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('is_banned', sa.Boolean(), nullable=True),
     sa.Column('post_id', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ),
