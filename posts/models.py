@@ -12,6 +12,8 @@ class Post(Base):
     content = Column(Text)
     is_banned = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey("users.id"))
+    auto_reply_enabled = Column(Boolean, default=False)
+    reply_delay = Column(Integer, default=0)
 
     user = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post")

@@ -1,5 +1,6 @@
 from typing import Type
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from posts.models import Post
@@ -26,17 +27,25 @@ def create_post(
     return db_post
 
 
-def update_post(db: Session, post_id: int, post: PostCreate) -> Post:
+def update_post(
+    db: Session, post_id: int, post: PostCreate, user_id: int
+) -> Post:
     db_post = db.query(Post).filter(Post.id == post_id).first()
-    if db_post:
-        for key, value in post.dict().items():
-            setattr(db_post, key, value)
-        db.commit()
-        db.refresh(db_post)
-    return db_post
+    if db_post.user_id != user_id:
+        if db_post:
+            for key, value in post.dict().items():
+                setattr(db_post, key, value)
+            db.commit()
+            db.refresh(db_post)
+        return db_post
 
 
-def delete_post(db: Session, post_id: int) -> Post:
+def delete_post(db: Session, post_id: int, user_id: int) -> Post:
+    if (
+        db.query(Post).filter(Post.id == post_id).first().user_id
+        != user_id
+    ):
+        raise HTTPException(status_code=404, detail="Post not found")
     db_post = db.query(Post).filter(Post.id == post_id).first()
     if db_post:
         db.delete(db_post)

@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -5,7 +7,7 @@ from comments.analyzer_comments import get_comments_daily_breakdown
 from comments.crud import create_comment, get_comments_by_post
 from db.database import get_db
 from comments.schemas import CommentCreate, CommentResponse
-from services.moderation import is_toxic_content
+from services.moderation import is_toxic_content, generate_auto_reply
 from user.models import User
 from user.services import get_current_user
 
@@ -13,12 +15,11 @@ router = APIRouter()
 
 
 @router.post("/api/comments/", response_model=CommentResponse)
-def create_comment_endpoint(
+async def create_comment_endpoint(
     comment: CommentCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CommentResponse:
-    print(comment)
     is_banned = is_toxic_content(comment.content)
     if is_banned:
         create_comment(
@@ -31,13 +32,17 @@ def create_comment_endpoint(
         raise HTTPException(
             status_code=400, detail="Comment contains prohibited content"
         )
-    return create_comment(
+    db_comment = create_comment(
         db=db,
         comment=comment,
         post_id=comment.post_id,
         user_id=current_user.id,
         is_banned=False,
     )
+
+    await asyncio.create_task(generate_auto_reply(db_comment.id))
+
+    return db_comment
 
 
 @router.get(
